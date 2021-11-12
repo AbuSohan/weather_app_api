@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 import requests
+
+from .forms import CityForm
 from .models import City
 
 
@@ -21,7 +23,14 @@ def index(request):
 
     # context = {'weather': weather}
 
+
     cities = City.objects.all()
+
+    if request.method == 'POST':  # only true if form is submitted
+        form = CityForm(request.POST)  # add actual request data to form for processing
+        form.save()  # will validate and save if validate
+
+    form = CityForm()
     weather_data = []
 
     for city in cities:
@@ -37,6 +46,13 @@ def index(request):
 
         weather_data.append(weather)  # add the data for the current city into our list
 
-    context = {'weather_data': weather_data}
+    context = {'weather_data': weather_data, 'form': form}
 
     return render(request, 'weather/index.html', context)  # returns the index.html template
+
+
+def removeCity(request, city_name):
+    city = City.objects.filter(name=city_name)
+    city.delete()
+
+    return redirect('index')
